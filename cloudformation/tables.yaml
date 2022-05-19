@@ -1,0 +1,59 @@
+# documentation:
+#  https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-anatomy.html
+#
+#  https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html
+#   AttributeType: "S" | "N" | "B"   for  String, Number, Binary; documentation: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html#cfn-dynamodb-table-attributedef
+#   KeyType: "HASH" | "RANGE"        documentation: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-dynamodb-keyschema.html
+#   KeySchema: defines the key of the table (can be composite) documentation: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-dynamodb-keyschema.html
+#   BillingMode: PAY_PER_REQUEST | PROVISIONED
+#   ProvisionedThroughput: docs: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-dynamodb-provisionedthroughput.html If you set BillingMode as PROVISIONED, you must specify this property
+#   TableClass: STANDARD | STANDARD_INFREQUENT_ACCESS   documenation: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html#cfn-dynamodb-table-tableclass
+#
+#  to deploy (from project root):
+#    $ aws cloudformation deploy --stack-name search-feed-service-kinesis-consumer-binder-tables --template-file ./additional_stacks/tables.yaml
+#    can see the outputs on https://eu-central-1.console.aws.amazon.com/cloudformation/home?region=eu-central-1#/stacks/outputs?filteringStatus=active&filteringText=&viewNested=true&hideStacks=false&stackId=arn%3Aaws%3Acloudformation%3Aeu-central-1%3A019283549872%3Astack%2Fsearch-feed-service-kinesis-consumer-binder-tables%2F540bc330-d13d-11ec-9622-063332aefc5a
+Resources:
+  SFSSpringIntegrationLockRegistry:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "lockKey"
+          AttributeType: "S"
+        - AttributeName: "sortKey"
+          AttributeType: "S"
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: "lockKey"
+          KeyType: "HASH"
+        - AttributeName: "sortKey"
+          KeyType: "RANGE"
+      TableClass: STANDARD
+      TableName: SFSSpringIntegrationLockRegistry-tmp
+      Tags:
+        - Key: "service"
+          Value: "search-feed-service"
+  SFSSpringIntegrationMetadataStore:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "KEY"
+          AttributeType: "S"
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: "KEY"
+          KeyType: "HASH"
+      TableClass: STANDARD
+      TableName: SFSSpringIntegrationMetadataStore-tmp
+      Tags:
+        - Key: "service"
+          Value: "search-feed-service"
+
+Outputs:
+  SFSSpringIntegrationLockRegistryArn:
+    Value: !GetAtt SFSSpringIntegrationLockRegistry.Arn
+    Export:
+      Name: SFSSpringIntegrationLockRegistry-arn
+  SFSSpringIntegrationMetadataStoreArn:
+    Value: !GetAtt SFSSpringIntegrationMetadataStore.Arn
+    Export:
+      Name: SFSSpringIntegrationMetadataStore-arn
